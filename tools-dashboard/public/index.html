@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MyTools Dashboard</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">MT</div>
+        <div>
+          <strong>MyTools</strong>
+          <span>Local toolkit</span>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-item active" type="button" data-panel="playwright">
+          <span>Playwright</span>
+        </button>
+        <button class="nav-item" type="button" data-panel="api">
+          <span>API Tester</span>
+        </button>
+        <button class="nav-item" type="button" data-panel="data">
+          <span>Data Generator</span>
+        </button>
+        <button class="nav-item" type="button" data-panel="files">
+          <span>Boundary Files</span>
+        </button>
+        <button class="nav-item" type="button" data-panel="utilities">
+          <span>Utilities</span>
+        </button>
+        <button class="nav-item" type="button" data-panel="runs">
+          <span>Runs</span>
+        </button>
+      </nav>
+    </aside>
+
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Tool Manager</p>
+          <h1>自动化脚本控制台</h1>
+        </div>
+        <button class="icon-button" id="refreshButton" type="button" title="刷新">
+          <span aria-hidden="true">↻</span>
+        </button>
+      </header>
+
+      <section class="panel active" id="panel-playwright">
+        <section class="surface action-surface">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Reports</p>
+              <h2>回放报告与 Trace</h2>
+            </div>
+            <span class="status-pill" id="artifactStatus">No report</span>
+          </div>
+          <div class="quick-actions">
+            <button class="primary-button" id="replayAllButton" type="button">全部回放并生成报告</button>
+            <button class="secondary-button" id="openReportButton" type="button">打开测试报告</button>
+          </div>
+          <div class="artifact-meta" id="artifactMeta"></div>
+          <div class="run-status" id="runStatus" hidden>
+            <div class="run-status-row">
+              <span id="runStatusText">正在运行</span>
+              <span id="runStatusTime"></span>
+            </div>
+            <div class="progress-bar" aria-hidden="true">
+              <span></span>
+            </div>
+          </div>
+        </section>
+
+        <div class="grid">
+          <section class="surface form-surface">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Recorder</p>
+                <h2>录制新脚本</h2>
+              </div>
+              <span class="status-pill" id="toolStatus">Checking</span>
+            </div>
+
+            <form id="recordForm" class="stack">
+              <label>
+                <span>脚本名称</span>
+                <input name="name" autocomplete="off" required>
+              </label>
+              <label>
+                <span>起始网址</span>
+                <input name="url" type="url" required>
+              </label>
+              <label class="check-row">
+                <input name="force" type="checkbox">
+                <span>覆盖同名脚本</span>
+              </label>
+              <button class="primary-button" type="submit">开始录制</button>
+            </form>
+          </section>
+
+          <section class="surface recordings-surface">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Recordings</p>
+                <h2>已有脚本</h2>
+              </div>
+              <span class="count" id="recordingCount">0</span>
+            </div>
+            <div class="bulk-bar" id="bulkBar" hidden>
+              <label class="check-row">
+                <input id="selectAllBox" type="checkbox">
+                <span>全选</span>
+              </label>
+              <button class="trash-button" id="bulkDeleteButton" type="button" title="删除选中" aria-label="删除选中">
+                <span aria-hidden="true">🗑</span>
+              </button>
+              <span class="bulk-count" id="bulkCount">已选 0 个</span>
+            </div>
+            <div class="recording-list" id="recordingList"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-api">
+        <section class="surface action-surface">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">API Tester</p>
+              <h2>接口自动化</h2>
+            </div>
+            <span class="status-pill" id="apiStatus">Ready</span>
+          </div>
+          <div class="quick-actions">
+            <button class="primary-button" id="runAllApiButton" type="button">运行全部接口</button>
+            <button class="secondary-button" id="newApiCaseButton" type="button">新增接口</button>
+            <button class="secondary-button" id="importPostmanButton" type="button">导入 Postman</button>
+            <button class="secondary-button" id="openApiReportButton" type="button">打开接口报告</button>
+            <input id="postmanFileInput" type="file" accept=".json,application/json" hidden>
+          </div>
+          <div class="api-summary" id="apiSummary"></div>
+          <div class="api-result-list" id="apiResultList"></div>
+        </section>
+
+        <div class="grid">
+          <section class="surface form-surface">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Environment</p>
+                <h2>环境配置</h2>
+              </div>
+            </div>
+            <form id="apiConfigForm" class="stack">
+              <label>
+                <span>Base URL</span>
+                <input name="base_url" type="url">
+              </label>
+              <label>
+                <span>全局 Headers JSON</span>
+                <textarea name="headers" rows="7"></textarea>
+              </label>
+              <button class="primary-button" type="submit">保存配置</button>
+            </form>
+          </section>
+
+          <section class="surface recordings-surface">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Cases</p>
+                <h2>接口用例</h2>
+              </div>
+              <span class="count" id="apiCaseCount">0</span>
+            </div>
+            <div class="recording-list" id="apiCaseList"></div>
+          </section>
+        </div>
+
+        <section class="surface load-test-surface">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Load Test</p>
+              <h2>接口压测</h2>
+            </div>
+            <span class="status-pill" id="loadTestStatus">Idle</span>
+          </div>
+          <form id="loadTestForm" class="load-form">
+            <label>
+              <span>压测接口</span>
+              <select name="name" id="loadCaseSelect"></select>
+            </label>
+            <label>
+              <span>并发数</span>
+              <input name="concurrency" type="number" min="1" max="500" value="10">
+            </label>
+            <label>
+              <span>总请求数</span>
+              <input name="total" type="number" min="1" max="10000" value="100">
+            </label>
+            <label>
+              <span>超时秒数</span>
+              <input name="timeout" type="number" min="1" max="120" value="10">
+            </label>
+            <button class="primary-button" id="runLoadTestButton" type="button">开始压测</button>
+          </form>
+          <div class="load-result" id="loadResult"></div>
+        </section>
+      </section>
+
+      <section class="panel" id="panel-data">
+        <section class="surface action-surface">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Data Generator</p>
+              <h2>测试数据生成</h2>
+            </div>
+            <span class="status-pill" id="dataStatus">Ready</span>
+          </div>
+          <div class="quick-actions">
+            <button class="primary-button" id="generateDataButton" type="button">生成数据</button>
+            <a class="secondary-link" id="downloadDataLink" href="#" hidden>下载最新文件</a>
+          </div>
+          <div class="artifact-meta" id="dataArtifactMeta"></div>
+        </section>
+
+        <div class="grid">
+          <section class="surface form-surface">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Options</p>
+                <h2>生成配置</h2>
+              </div>
+            </div>
+            <form id="dataGeneratorForm" class="stack">
+              <label>
+                <span>生成数量</span>
+                <input name="count" type="number" min="1" max="10000" value="20">
+              </label>
+              <label>
+                <span>输出格式</span>
+                <select name="format" id="dataFormatSelect">
+                  <option value="csv">CSV</option>
+                  <option value="sql">SQL Insert</option>
+                </select>
+              </label>
+              <label id="tableNameRow" hidden>
+                <span>SQL 表名</span>
+                <input name="tableName" autocomplete="off" value="test_data">
+              </label>
+              <div>
+                <span class="field-label">选择字段</span>
+                <div class="field-grid" id="dataFieldGrid"></div>
+              </div>
+            </form>
+          </section>
+
+          <section class="surface recordings-surface">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Preview</p>
+                <h2>预览与文件</h2>
+              </div>
+              <span class="count" id="dataFileCount">0</span>
+            </div>
+            <div class="data-preview" id="dataPreview"></div>
+            <div class="recording-list data-file-list" id="dataFileList"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-files">
+        <section class="surface action-surface">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">File Boundary Generator</p>
+              <h2>边界文件生成器</h2>
+            </div>
+            <span class="status-pill" id="fileBoundaryStatus">Ready</span>
+          </div>
+          <div class="quick-actions">
+            <button class="primary-button" id="generateBoundaryButton" type="button">生成文件</button>
+            <button class="secondary-button" id="batchBoundaryButton" type="button">批量生成常用边界</button>
+          </div>
+          <div class="artifact-meta" id="boundaryArtifactMeta"></div>
+        </section>
+
+        <div class="grid">
+          <section class="surface form-surface">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Options</p>
+                <h2>生成配置</h2>
+              </div>
+            </div>
+            <form id="boundaryForm" class="stack">
+              <label>
+                <span>文件格式</span>
+                <select name="format" id="boundaryFormatSelect"></select>
+              </label>
+              <label>
+                <span>文件类型</span>
+                <select name="variant">
+                  <option value="normal">正常文件</option>
+                  <option value="empty">空文件 0B</option>
+                  <option value="corrupt">损坏/截断文件</option>
+                  <option value="spoof">扩展名伪装</option>
+                  <option value="random">随机二进制</option>
+                </select>
+              </label>
+              <label>
+                <span>文件大小 KB</span>
+                <input name="sizeKb" type="number" min="0" max="204800" value="10">
+              </label>
+              <label>
+                <span>文件名场景</span>
+                <select name="nameMode">
+                  <option value="normal">普通文件名</option>
+                  <option value="chinese">中文文件名</option>
+                  <option value="spaces">带空格文件名</option>
+                  <option value="special">特殊字符文件名</option>
+                  <option value="long">超长文件名</option>
+                  <option value="doubleExt">多后缀文件名</option>
+                </select>
+              </label>
+              <label>
+                <span>自定义文件名</span>
+                <input name="fileName" autocomplete="off">
+              </label>
+              <label>
+                <span>批量边界限制 MB</span>
+                <input name="limitMb" type="number" min="1" max="200" value="10">
+              </label>
+              <div>
+                <span class="field-label">批量格式</span>
+                <div class="field-grid" id="boundaryFormatGrid"></div>
+              </div>
+            </form>
+          </section>
+
+          <section class="surface recordings-surface">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Files</p>
+                <h2>已生成文件</h2>
+              </div>
+              <span class="count" id="boundaryFileCount">0</span>
+            </div>
+            <div class="recording-list" id="boundaryFileList"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-utilities">
+        <div class="grid">
+          <section class="surface form-surface">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Image Compressor</p>
+                <h2>图片压缩</h2>
+              </div>
+              <span class="status-pill" id="utilityStatus">Ready</span>
+            </div>
+            <form id="imageCompressorForm" class="stack">
+              <label>
+                <span>选择图片</span>
+                <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp">
+              </label>
+              <label>
+                <span>输出格式</span>
+                <select name="format">
+                  <option value="image/jpeg">JPEG</option>
+                  <option value="image/webp">WebP</option>
+                  <option value="image/png">PNG</option>
+                </select>
+              </label>
+              <label>
+                <span>压缩质量 <strong id="qualityValue">75%</strong></span>
+                <input name="quality" type="range" min="0.1" max="1" step="0.05" value="0.75">
+              </label>
+              <label>
+                <span>最大宽度 px</span>
+                <input name="maxWidth" type="number" min="100" max="8000" value="1920">
+              </label>
+              <button class="primary-button" id="compressImageButton" type="button">压缩图片</button>
+            </form>
+            <div class="artifact-meta" id="imageCompressMeta"></div>
+          </section>
+
+          <section class="surface recordings-surface">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Directory Tree</p>
+                <h2>目录树生成器</h2>
+              </div>
+            </div>
+            <form id="treeGeneratorForm" class="stack">
+              <label>
+                <span>目录路径</span>
+                <div class="inline-control">
+                  <input name="path" autocomplete="off" value="D:\Tool\AI\MyTools">
+                  <button class="secondary-button" id="browseTreePathButton" type="button">选择目录</button>
+                </div>
+              </label>
+              <label>
+                <span>扫描深度</span>
+                <input name="depth" type="number" min="1" max="12" value="4">
+              </label>
+              <label>
+                <span>忽略目录/文件，逗号分隔</span>
+                <input name="ignore" autocomplete="off" value="node_modules,.git,.pytest_cache,__pycache__,playwright-report,test-results">
+              </label>
+              <label class="check-row">
+                <input name="includeFiles" type="checkbox" checked>
+                <span>包含文件</span>
+              </label>
+              <button class="primary-button" id="generateTreeButton" type="button">生成目录树</button>
+            </form>
+            <div class="tree-output" id="treeOutput"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-runs">
+        <section class="surface">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Activity</p>
+              <h2>运行记录</h2>
+            </div>
+          </div>
+          <div class="run-list" id="runList"></div>
+        </section>
+      </section>
+    </main>
+
+    <dialog class="confirm-modal" id="confirmModal">
+      <form method="dialog">
+        <div class="modal-head">
+          <p class="eyebrow">Confirm</p>
+          <h2>确认删除</h2>
+        </div>
+        <p class="modal-copy" id="confirmCopy"></p>
+        <div class="delete-list" id="confirmList"></div>
+        <div class="modal-actions">
+          <button class="secondary-button" id="cancelDeleteButton" value="cancel" type="button">取消</button>
+          <button class="danger-button" id="confirmDeleteButton" value="confirm" type="button">确认删除</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="confirm-modal api-modal" id="apiCaseModal">
+      <form method="dialog">
+        <div class="modal-head">
+          <p class="eyebrow">API Case</p>
+          <h2 id="apiCaseModalTitle">新增接口</h2>
+        </div>
+        <div class="stack">
+          <label>
+            <span>用例名称</span>
+            <input id="apiCaseName" autocomplete="off">
+          </label>
+          <label>
+            <span>执行顺序</span>
+            <input id="apiCaseOrder" type="number" min="1" step="1">
+          </label>
+          <label>
+            <span>请求方法</span>
+            <select id="apiCaseMethod">
+              <option>GET</option>
+              <option>POST</option>
+              <option>PUT</option>
+              <option>PATCH</option>
+              <option>DELETE</option>
+            </select>
+          </label>
+          <label>
+            <span>接口路径</span>
+            <input id="apiCasePath" autocomplete="off">
+          </label>
+          <label>
+            <span>Headers JSON</span>
+            <textarea id="apiCaseHeaders" rows="4"></textarea>
+          </label>
+          <label>
+            <span>Params JSON</span>
+            <textarea id="apiCaseParams" rows="4"></textarea>
+          </label>
+          <label>
+            <span>Body JSON</span>
+            <textarea id="apiCaseBody" rows="6"></textarea>
+          </label>
+          <label>
+            <span>提取变量 JSON</span>
+            <textarea id="apiCaseExtract" rows="5"></textarea>
+          </label>
+          <label>
+            <span>断言 JSON</span>
+            <textarea id="apiCaseAssertions" rows="7"></textarea>
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button class="secondary-button" id="cancelApiCaseButton" type="button">取消</button>
+          <button class="primary-button" id="saveApiCaseButton" type="button">保存</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="confirm-modal directory-modal" id="directoryModal">
+      <form method="dialog">
+        <div class="modal-head">
+          <p class="eyebrow">Directory</p>
+          <h2>选择目录</h2>
+        </div>
+        <div class="artifact-meta" id="directoryCurrentPath"></div>
+        <div class="directory-list" id="directoryList"></div>
+        <div class="modal-actions">
+          <button class="secondary-button" id="closeDirectoryModalButton" type="button">关闭</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>

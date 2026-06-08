@@ -1,0 +1,16 @@
+{
+  "name": "playwright-recorder",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "record": "node scripts/record.js",
+    "replay": "node scripts/replay.js",
+    "list": "node scripts/list-recordings.js",
+    "install:browsers": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "playwright": "^1.60.0"
+  }
+}
