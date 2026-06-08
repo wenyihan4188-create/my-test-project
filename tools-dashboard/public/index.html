@@ -418,6 +418,57 @@
             </form>
             <div class="tree-output" id="treeOutput"></div>
           </section>
+
+          <section class="surface codec-surface">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Text Codec</p>
+                <h2>文本 / 编码转换工具箱</h2>
+              </div>
+              <span class="status-pill" id="codecStatus">Ready</span>
+            </div>
+            <form id="textCodecForm" class="codec-layout">
+              <label class="codec-mode">
+                <span>转换模式</span>
+                <select name="mode" id="codecMode">
+                  <option value="url-encode">URL 编码</option>
+                  <option value="url-decode">URL 解码</option>
+                  <option value="component-encode">URL 参数编码</option>
+                  <option value="component-decode">URL 参数解码</option>
+                  <option value="base64-encode">Base64 编码 UTF-8</option>
+                  <option value="base64-decode">Base64 解码 UTF-8</option>
+                  <option value="base64url-encode">Base64URL 编码</option>
+                  <option value="base64url-decode">Base64URL 解码</option>
+                  <option value="html-escape">HTML 实体转义</option>
+                  <option value="html-unescape">HTML 实体还原</option>
+                  <option value="unicode-escape">Unicode \u 转义</option>
+                  <option value="unicode-unescape">Unicode \u 还原</option>
+                  <option value="hex-encode">Hex 编码 UTF-8</option>
+                  <option value="hex-decode">Hex 解码 UTF-8</option>
+                  <option value="binary-encode">Binary 编码 UTF-8</option>
+                  <option value="binary-decode">Binary 解码 UTF-8</option>
+                  <option value="json-pretty">JSON 格式化</option>
+                  <option value="json-minify">JSON 压缩</option>
+                  <option value="jwt-decode">JWT Header/Payload 解码</option>
+                </select>
+              </label>
+              <label>
+                <span>输入</span>
+                <textarea id="codecInput" name="input" rows="9" spellcheck="false" placeholder="粘贴需要转换的文本"></textarea>
+              </label>
+              <div class="codec-actions">
+                <button class="primary-button" id="convertTextButton" type="button">转换</button>
+                <button class="secondary-button" id="swapCodecButton" type="button">交换</button>
+                <button class="secondary-button" id="copyCodecButton" type="button">复制结果</button>
+                <button class="secondary-button" id="clearCodecButton" type="button">清空</button>
+              </div>
+              <label>
+                <span>输出</span>
+                <textarea id="codecOutput" rows="9" spellcheck="false" readonly placeholder="转换结果会显示在这里"></textarea>
+              </label>
+              <div class="artifact-meta" id="codecStats"></div>
+            </form>
+          </section>
         </div>
       </section>
 

@@ -84,6 +84,13 @@ const elements = {
   loadTestStatus: document.querySelector('#loadTestStatus'),
   openReportButton: document.querySelector('#openReportButton'),
   closeDirectoryModalButton: document.querySelector('#closeDirectoryModalButton'),
+  clearCodecButton: document.querySelector('#clearCodecButton'),
+  codecInput: document.querySelector('#codecInput'),
+  codecMode: document.querySelector('#codecMode'),
+  codecOutput: document.querySelector('#codecOutput'),
+  codecStats: document.querySelector('#codecStats'),
+  codecStatus: document.querySelector('#codecStatus'),
+  convertTextButton: document.querySelector('#convertTextButton'),
   newApiCaseButton: document.querySelector('#newApiCaseButton'),
   openApiReportButton: document.querySelector('#openApiReportButton'),
   postmanFileInput: document.querySelector('#postmanFileInput'),
@@ -96,13 +103,16 @@ const elements = {
   runAllApiButton: document.querySelector('#runAllApiButton'),
   runLoadTestButton: document.querySelector('#runLoadTestButton'),
   saveApiCaseButton: document.querySelector('#saveApiCaseButton'),
+  copyCodecButton: document.querySelector('#copyCodecButton'),
   runList: document.querySelector('#runList'),
   runStatus: document.querySelector('#runStatus'),
   runStatusText: document.querySelector('#runStatusText'),
   runStatusTime: document.querySelector('#runStatusTime'),
   apiResultList: document.querySelector('#apiResultList'),
   selectAllBox: document.querySelector('#selectAllBox'),
+  swapCodecButton: document.querySelector('#swapCodecButton'),
   tableNameRow: document.querySelector('#tableNameRow'),
+  textCodecForm: document.querySelector('#textCodecForm'),
   treeGeneratorForm: document.querySelector('#treeGeneratorForm'),
   treeOutput: document.querySelector('#treeOutput'),
   toolStatus: document.querySelector('#toolStatus'),
@@ -122,7 +132,10 @@ elements.bulkDeleteButton.addEventListener('click', () => openDeleteConfirm([...
 elements.cancelApiCaseButton.addEventListener('click', () => elements.apiCaseModal.close());
 elements.cancelDeleteButton.addEventListener('click', () => elements.confirmModal.close());
 elements.closeDirectoryModalButton.addEventListener('click', () => elements.directoryModal.close());
+elements.clearCodecButton.addEventListener('click', clearCodec);
 elements.confirmDeleteButton.addEventListener('click', deleteConfirmed);
+elements.convertTextButton.addEventListener('click', convertText);
+elements.copyCodecButton.addEventListener('click', copyCodecOutput);
 elements.dataFormatSelect.addEventListener('change', renderDataFormatState);
 elements.generateBoundaryButton.addEventListener('click', () => generateBoundaryFiles('single'));
 elements.generateDataButton.addEventListener('click', generateData);
@@ -139,6 +152,11 @@ elements.replayAllButton.addEventListener('click', replayAll);
 elements.runAllApiButton.addEventListener('click', () => runApiCase());
 elements.runLoadTestButton.addEventListener('click', runLoadTest);
 elements.saveApiCaseButton.addEventListener('click', saveApiCase);
+elements.swapCodecButton.addEventListener('click', swapCodecText);
+elements.textCodecForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  convertText();
+});
 elements.selectAllBox.addEventListener('change', () => {
   state.selectedNames = elements.selectAllBox.checked
     ? new Set(state.recordings.map((recording) => recording.name))
@@ -1052,6 +1070,192 @@ function canvasToBlob(canvas, format, quality) {
       resolve(blob);
     }, format, quality);
   });
+}
+
+function convertText() {
+  const input = elements.codecInput.value;
+  const mode = elements.codecMode.value;
+
+  try {
+    const output = runTextCodec(mode, input);
+    elements.codecOutput.value = output;
+    elements.codecStatus.textContent = 'Converted';
+    elements.codecStats.textContent = `输入 ${formatTextMetric(input)} / 输出 ${formatTextMetric(output)}`;
+    showToast('转换完成');
+  } catch (error) {
+    elements.codecStatus.textContent = 'Error';
+    showToast(error.message);
+  }
+}
+
+async function copyCodecOutput() {
+  if (!elements.codecOutput.value) {
+    showToast('还没有可复制的转换结果');
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(elements.codecOutput.value);
+    showToast('转换结果已复制');
+  } catch {
+    fallbackCopyText(elements.codecOutput.value);
+    showToast('转换结果已复制');
+  }
+}
+
+function swapCodecText() {
+  const input = elements.codecInput.value;
+  elements.codecInput.value = elements.codecOutput.value;
+  elements.codecOutput.value = input;
+  elements.codecStats.textContent = `输入 ${formatTextMetric(elements.codecInput.value)} / 输出 ${formatTextMetric(elements.codecOutput.value)}`;
+}
+
+function clearCodec() {
+  elements.codecInput.value = '';
+  elements.codecOutput.value = '';
+  elements.codecStatus.textContent = 'Ready';
+  elements.codecStats.textContent = '';
+}
+
+function runTextCodec(mode, input) {
+  switch (mode) {
+    case 'url-encode':
+      return encodeURI(input);
+    case 'url-decode':
+      return decodeURI(input);
+    case 'component-encode':
+      return encodeURIComponent(input);
+    case 'component-decode':
+      return decodeURIComponent(input);
+    case 'base64-encode':
+      return bytesToBase64(utf8Bytes(input));
+    case 'base64-decode':
+      return utf8Text(base64ToBytes(input));
+    case 'base64url-encode':
+      return bytesToBase64Url(utf8Bytes(input));
+    case 'base64url-decode':
+      return utf8Text(base64UrlToBytes(input));
+    case 'html-escape':
+      return escapeHtml(input);
+    case 'html-unescape':
+      return htmlUnescape(input);
+    case 'unicode-escape':
+      return unicodeEscape(input);
+    case 'unicode-unescape':
+      return unicodeUnescape(input);
+    case 'hex-encode':
+      return [...utf8Bytes(input)].map((byte) => byte.toString(16).padStart(2, '0')).join(' ');
+    case 'hex-decode':
+      return utf8Text(hexToBytes(input));
+    case 'binary-encode':
+      return [...utf8Bytes(input)].map((byte) => byte.toString(2).padStart(8, '0')).join(' ');
+    case 'binary-decode':
+      return utf8Text(binaryToBytes(input));
+    case 'json-pretty':
+      return JSON.stringify(JSON.parse(input), null, 2);
+    case 'json-minify':
+      return JSON.stringify(JSON.parse(input));
+    case 'jwt-decode':
+      return decodeJwt(input);
+    default:
+      throw new Error('请选择转换模式');
+  }
+}
+
+function utf8Bytes(value) {
+  return new TextEncoder().encode(value);
+}
+
+function utf8Text(bytes) {
+  return new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+}
+
+function bytesToBase64(bytes) {
+  let binary = '';
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+  return btoa(binary);
+}
+
+function base64ToBytes(value) {
+  const normalized = normalizeBase64(value);
+  const binary = atob(normalized);
+  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+}
+
+function bytesToBase64Url(bytes) {
+  return bytesToBase64(bytes).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/u, '');
+}
+
+function base64UrlToBytes(value) {
+  return base64ToBytes(String(value).trim().replaceAll('-', '+').replaceAll('_', '/'));
+}
+
+function normalizeBase64(value) {
+  const compact = String(value).replace(/\s+/g, '');
+  const padding = compact.length % 4;
+  return padding === 0 ? compact : compact.padEnd(compact.length + 4 - padding, '=');
+}
+
+function htmlUnescape(value) {
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = value;
+  return textarea.value;
+}
+
+function unicodeEscape(value) {
+  return Array.from(value, (char) => {
+    if (/^[\x20-\x7e]$/u.test(char)) {
+      return char;
+    }
+    const escaped = [];
+    for (let index = 0; index < char.length; index += 1) {
+      escaped.push(`\\u${char.charCodeAt(index).toString(16).padStart(4, '0')}`);
+    }
+    return escaped.join('');
+  }).join('');
+}
+
+function unicodeUnescape(value) {
+  return String(value)
+    .replace(/\\u\{([0-9a-fA-F]+)\}/g, (match, hex) => String.fromCodePoint(Number.parseInt(hex, 16)))
+    .replace(/\\u([0-9a-fA-F]{4})/g, (match, hex) => String.fromCharCode(Number.parseInt(hex, 16)));
+}
+
+function hexToBytes(value) {
+  const compact = String(value).replace(/0x/gi, '').replace(/[^0-9a-fA-F]/g, '');
+  if (compact.length % 2 !== 0) {
+    throw new Error('Hex 长度必须是偶数');
+  }
+  return Uint8Array.from(compact.match(/.{2}/g) || [], (hex) => Number.parseInt(hex, 16));
+}
+
+function binaryToBytes(value) {
+  const chunks = String(value).match(/[01]{8}/g) || [];
+  if (chunks.length === 0 && String(value).trim()) {
+    throw new Error('Binary 输入需要包含 8 位一组的 0/1');
+  }
+  return Uint8Array.from(chunks, (chunk) => Number.parseInt(chunk, 2));
+}
+
+function decodeJwt(value) {
+  const parts = String(value).trim().split('.');
+  if (parts.length < 2) {
+    throw new Error('JWT 至少需要 Header 和 Payload 两段');
+  }
+
+  const header = JSON.parse(utf8Text(base64UrlToBytes(parts[0])));
+  const payload = JSON.parse(utf8Text(base64UrlToBytes(parts[1])));
+  return JSON.stringify({
+    header,
+    payload,
+    signature: parts[2] || ''
+  }, null, 2);
+}
+
+function formatTextMetric(value) {
+  return `${[...value].length} 字符 / ${formatSize(utf8Bytes(value).length)}`;
 }
 
 async function generateDirectoryTree() {

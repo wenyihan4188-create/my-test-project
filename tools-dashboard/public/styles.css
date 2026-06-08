@@ -336,6 +336,11 @@ h2 {
   #panel-utilities.panel.active > .grid > .recordings-surface {
     overflow-y: auto;
   }
+
+  #panel-utilities.panel.active > .grid > .codec-surface {
+    min-height: 0;
+    overflow-y: auto;
+  }
 }
 
 .load-test-surface {
@@ -847,6 +852,48 @@ pre {
 
 .tree-actions {
   margin-bottom: 10px;
+}
+
+.codec-surface {
+  grid-column: 1 / -1;
+  padding: 20px;
+}
+
+.codec-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(260px, 1fr);
+  gap: 14px;
+}
+
+.codec-mode,
+.codec-actions,
+.codec-layout .artifact-meta {
+  grid-column: 1 / -1;
+}
+
+.codec-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.codec-layout textarea {
+  min-height: 230px;
+  resize: vertical;
+  font-family: "Cascadia Mono", "JetBrains Mono", Consolas, monospace;
+  line-height: 1.55;
+  white-space: pre;
+  overflow: auto;
+}
+
+#codecOutput {
+  background: rgba(246, 252, 251, 0.64);
+}
+
+@media (max-width: 760px) {
+  .codec-layout {
+    grid-template-columns: 1fr;
+  }
 }
 
 .toast {
